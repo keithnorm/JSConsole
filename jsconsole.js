@@ -1,3 +1,23 @@
+if (!Function.prototype.bind) {
+  Function.prototype.bind = function (oThis) {
+    if (typeof this !== "function") {
+      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+    }
+
+    var aArgs = Array.prototype.slice.call(arguments, 1), 
+        fToBind = this, 
+        fNOP = function () {},
+        fBound = function () {
+          return fToBind.apply(
+            this instanceof fNOP ? this 
+              : oThis, aArgs.concat(Array.prototype.slice.call(arguments)));
+        };
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
+    return fBound;
+  };
+}
+
 (function($) {
 
   function JSConsole(el, options) {
@@ -13,7 +33,10 @@
         <div class="result"></div>\
       </div>',
 
-    speed: 800,
+    speed: 500,
+
+    history: [],
+    historyPointer: 0,
 
     initialize: function() {
       this.el
@@ -39,6 +62,37 @@
           e.preventDefault();
           this.execute();
           break;
+
+        case 38 :
+          this.historyPointer--;
+          if(this.historyPointer <= -this.history.length)
+            this.historyPointer = -this.history.length;
+          if(this.historyPointer < 0)
+            this.el.val(this.history[this.history.length + this.historyPointer]);
+          else
+            this.el.val(this.history[this.historyPointer]);
+          this.render();
+          setTimeout(function() {
+            this.setCaret(this.el.val().length);
+          }.bind(this), 10);
+          break;
+        
+        case 40 :
+          this.historyPointer++;
+          if(this.historyPointer >= this.history.length - 1)
+            this.historyPointer = this.history.length - 1;
+
+          if(this.historyPointer < 0)
+            this.el.val(this.history[this.history.length + this.historyPointer]);
+
+          else 
+            this.el.val(this.history[this.historyPointer]);
+          this.render();
+          setTimeout(function() {
+            this.setCaret(this.el.val().length);
+          }.bind(this), 10);
+          break;
+        
         default :
           this.stop();
           setTimeout(function() {
@@ -63,6 +117,8 @@
       this.el.val('');
       this.render();
       this.console.find('.result').html(result ? '=> ' + result : '');
+      this.history.push(code);
+      this.historyPointer = this.history.length;
     },
 
     render: function() {
@@ -116,6 +172,21 @@
         return rc.text.length;
       } 
       return 0;
+    },
+
+    setCaret: function(pos) {
+      var el = this.el.get(0);
+      if(el.setSelectionRange) {
+        el.focus();
+        el.setSelectionRange(pos, pos);
+      }
+      else if (el.createTextRange) {
+        var range = el.createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', pos);
+        range.moveStart('character', pos);
+        range.select();
+      }
     },
 
     debounce: function(func, wait, immediate) {
