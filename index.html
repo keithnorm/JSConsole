@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css" media="screen">
+      .caret, .input {
+        font-family: courier, fixed;
+        font-size: 16px;
+        display: inline-block;
+      }
+
+      .input {
+        margin-left: 3px;
+      }
+
+      .caret {
+        background: #bada55;
+      }
+    </style>
+    <script type="text/javascript" charset="utf-8" src='jquery.js'></script>
+    <script type="text/javascript" charset="utf-8" src='jsconsole.js'></script>
+    <script type="text/javascript" charset="utf-8">
+      $(function() {
+        $('textarea').jsconsole();
+      });
+    </script>
+  </head>
+  <body>
+    <textarea></textarea>
+  </body>
+</html>
